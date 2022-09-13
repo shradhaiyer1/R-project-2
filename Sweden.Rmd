@@ -1,0 +1,67 @@
+---
+title: "Maps"
+output: html_document
+---
+
+```{r library, include=TRUE}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(gganimate)
+library(maps)
+library(plotly)
+library(ggmap)
+library(ggthemes)
+library(sf)
+library(ggrepel)
+library(rnaturalearth)
+```
+
+#Importing data
+
+```{r cars}
+runedata <- read_xlsx("Sweden.xlsx")
+as.data.frame(runedata)
+```
+
+#IDA
+
+```{r Data Summary}
+summary(runedata)
+```
+
+#Data Cleaning 
+```{r}
+runedata = mutate(runedata,classif = case_when(
+  grepl('RAK',Classification)~'RAK',
+  grepl('Fp',Classification)~'Fp',
+  grepl('Pr1',Classification)~'Pr1',
+  grepl('Pr2',Classification)~'Pr2',
+  grepl('Pr3',Classification)~'Pr3',
+  grepl('Pr4',Classification)~'Pr4',
+  grepl('Pr5',Classification)~'Pr5',
+  TRUE~ 'NA'))
+
+runedata$classif <- factor(runedata$classif, levels = c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered = TRUE)
+```
+
+
+```{r}
+barplot(table(runedata$classif), main = "Runestones in the Uppsala region categorised by Stylistic Categorisation", xlab = "Categories")
+```
+
+
+# Getting the map of Sweden
+
+```{r}
+runedata$ID <- as.vector(runedata$ID)
+Longitude <- runedata$Long
+Latitude <- runedata$Lat
+world <- ne_countries(scale = "large", returnclass = "sf")
+swe_map <- world %>% ggplot()+
+  geom_sf() +
+  coord_sf(xlim = c(8, 24), ylim =  c(55,70), expand = FALSE)
+swe_map  + geom_point(data = id, aes(Longitude, Latitude))
+
+```
+

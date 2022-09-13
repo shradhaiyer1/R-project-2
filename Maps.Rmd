@@ -1,0 +1,76 @@
+---
+title: "Maps"
+output: html_document
+---
+
+```{r library, include=TRUE}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(gganimate)
+library(maps)
+library(plotly)
+library(ggmap)
+library(ggthemes)
+library(sf)
+library(here)
+library(swemaps)
+library(rkolada)
+```
+
+#Importing data
+
+```{r cars}
+rune_mast <- read_xlsx("Uppsala.xlsx")
+```
+
+#IDA
+
+```{r Data Summary}
+summary(rune_mast)
+```
+
+#Data Cleaning 
+```{r}
+rune_mast = mutate(rune_mast,classif = case_when(
+  grepl('RAK',Classification)~'RAK',
+  grepl('Fp',Classification)~'Fp',
+  grepl('Pr1',Classification)~'Pr1',
+  grepl('Pr2',Classification)~'Pr2',
+  grepl('Pr3',Classification)~'Pr3',
+  grepl('Pr4',Classification)~'Pr4',
+  grepl('Pr5',Classification)~'Pr5',
+  TRUE~ 'NA'))
+
+rune_mast$classif <- factor(rune_mast$classif, levels = c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered = TRUE)
+```
+
+
+```{r}
+barplot(table(rune_mast$classif), main = "Runestones in the Uppsala region categorised by Stilegrupping", xlab = "Stilegrupping")
+```
+
+#Creating the map
+
+```{r}
+world %>% ggplot() + geom_sf() +  +
+  geom_sf(data=district1, size = 2, color = rune_mast$Cross) +    
+  coord_sf(xlim = c(8, 24), ylim =  c(55,70), expand = FALSE)
+rune_mast$Härad <- as.data.frame(rune_mast)
+district1<- st_as_sf(rune_mast$Härad, coords = c("Longitude", "Latitude"), crs = 4326)
+
+```
+
+
+```{r Getting map data}
+ggplot(data = sweden_map) +
+    geom_sf() +
+    coord_sf(crs = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs ")
+district1<- st_as_sf(rune_mast$Härad, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+```{r}
+ggmap(uppsala_map) + 
+  geom_point(data = rune_mast, aes(x=Long, y=Lat))
+```
+

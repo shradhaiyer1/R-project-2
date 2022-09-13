@@ -1,0 +1,39 @@
+---
+title: "Practice"
+output: html_document
+---
+
+```{r libraries}
+library(readxl)
+library(gganimate)
+library(ggplot2)
+library(tidyverse)
+```
+
+
+
+
+```{r , include=FALSE}
+library(readxl)
+rune_mast <- read_xls("Arch_master_spreadsheet.xls")
+```
+
+```{r, echo=FALSE}
+# IDA
+str(rune_mast)
+```
+
+# Initial modelling
+
+```{r}
+rune_mast = mutate(Arch,ClassNew = case_when(
+  grepl('RAK',Classification)~'RAK',
+  grepl('Fp',Classification)~'Fp',
+  grepl('Pr1',Classification)~'Pr1',
+  grepl('Pr2',Classification)~'Pr2',
+  grepl('Pr3',Classification)~'Pr3',
+  grepl('Pr4',Classification)~'Pr4',
+  grepl('Pr5',Classification)~'Pr5',
+  TRUE~ 'Other'
+))
+table(Arch$ClassNew)

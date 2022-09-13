@@ -1,0 +1,100 @@
+---
+title: "Gotlandtryagain"
+author: "Ru"
+date: '2022-04-09'
+output: html_document
+---
+```{r}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(maps)
+library(plotly)
+library(ggmap)
+library(ggthemes)
+library(sf)
+library(ggrepel)
+library(rnaturalearth)
+```
+
+
+```{r}
+library(tidyverse)     # for data cleaning and plotting
+library(maps)          # for map data
+library(ggmap)         # for mapping points on maps
+library(gplots)        # for col2hex() function
+library(RColorBrewer)  # for color palettes
+library(sf)            # for working with spatial data
+library(leaflet)       # for highly customizable mapping
+library(ggthemes)      # for more themes (including theme_map())
+theme_set(theme_minimal())
+```
+
+```{r}
+library("readxl")
+runedata <- read_xlsx("1Gotlandclean.xlsx")
+as.data.frame(runedata) 
+```
+
+```{r}
+library(dplyr)
+data = mutate(runedata,classif = case_when(
+  grepl('RAK',Classif)~'RAK',
+  grepl('Fp',Classif)~'Fp',
+  grepl('Pr1',Classif)~'Pr1',
+  grepl('Pr2',Classif)~'Pr2',
+  grepl('Pr3',Classif)~'Pr3',
+  grepl('Pr4',Classif)~'Pr4',
+  grepl('Pr5',Classif)~'Pr5',
+  TRUE~ 'NA'))
+
+data$classif <- factor(data$classif, levels = c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered = TRUE)
+```
+
+```{r}
+
+library("ggmap")
+sweden_map <- get_stamenmap(
+  bbox = c(left = 17.5, bottom = 57.0, right = 19.8, top = 57.9),
+  maptype = "toner-lite",
+  zoom = 9
+)
+
+ggmap(sweden_map)
+```
+
+```{r}
+library(ggthemes)
+ggmap(sweden_map) +
+  geom_point(data = runedata,
+             aes(x = Long, y = Lat, color = Classif),
+             size = 3.5, alpha = 0.7) +
+  labs(title = "Overall Distribution of Runestones in the Gotland County") +
+  theme_map() +
+  theme(legend.background = element_blank(), legend.position = "bottom")
+
+```
+
+```{r}
+swedenmap <- get_stamenmap(
+  bbox = c(left = 17.5, bottom = 57.0, right = 19.8, top = 57.9),
+  maptype = "toner-lite",
+  zoom = 9
+)
+
+ggmap(swedenmap)
+ggmap(swedenmap) +
+  geom_point(data = runedata,
+             aes(x = Long, y = Lat, color = Classif, alpha = 0.5),
+             size = 0.7, color = "darkred") +
+  labs(title = "Geographical Distribution of Runestones in the Gotland County") +
+  theme_map() +
+  theme(legend.background = element_blank(), legend.position = "bottom") +
+  facet_wrap(vars(Classif))
+```
+
+  

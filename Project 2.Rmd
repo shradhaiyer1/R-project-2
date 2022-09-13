@@ -1,0 +1,310 @@
+---
+title: "DATA 1901 Project 2"
+author: "*Shradha Iyer (siye7007), Ru Yun Liu (rliu0026), Jacqueline Lai (jlai2980), Luana Rendina (lren8746), Ariel Czajkowski (acza2888), Jennifer Sun (jsun5024)*"
+date: "Semester 1, 2022 | University of Sydney"
+output:
+  html_document:
+    code_download: true # embed .Rmd file
+    toc: true  # table of contents
+    toc_depth: 3
+    toc_float: true # toc is always visible when scrolled
+    number_sections: true 
+    theme: lumen # theme the doc
+    highlight: tango # theme syntax colouring
+    df_print: paged
+---
+
+```{css newstyles, echo=FALSE}
+h1, .h1, h2, .h2, h3, .h3 { /* Add space before headings: */
+    margin-top: 56px;
+}
+h1, h2 { /* add border to h1 and h2 */
+  border-bottom: solid 1px #666;
+}
+h2 { /* Resize header 2: */
+  font-size: 22px;
+}
+body { /* Make main text colour black */
+  color: black;
+}
+a { /* Link colours */
+  color: blue;
+}
+.tocify { /* Some toc fixes*/
+  width: 100% !important;
+  border: none; /* remove border */
+}
+.tocify-header { /* fix for horrible indent in toc */
+  text-indent: initial;
+}
+
+```
+
+# Report 
+
+## Research question
+
+Can a trend in the geographical spread of Swedish Viking runestones be observed by comparing the proportion of runestones with and without crosses over time? 
+
+This report ascertains associative trends between the establishment of runestones in the Gotland region and the concurrent Christianisation in Gotland and Uppsala counties with analysis to assess the scope of this model for further predictions.
+
+
+## Executive Summary
+
+Analysis of categorical data (crosses/time period) revealed that Uppsala and Gotland runestones were predominantly erected between 1050-1100 AD. Majority of Uppsala’s crosses are observed during this period, however, none of the analysed runestones from Gotland featured the cross motif. This elucidates the non-uniform, nuanced spread of Christianity across Sweden.
+
+
+## Initial Data Analysis
+
+Reliant upon visual interpretation, the data is subject to observation bias. Confounders including time and environment contribute to bias by making certain stylistic features across different rune-carvers indistinguishable. Data integrity and reliability is compromised by using multiple data sources and interpretation based on secondary archaeological sources including the epic Beowulf.   
+
+Selection bias occurred as ambiguous data including question marks, multiple categorisations, and unclassified data was re-categorised into 8 categories: RAK, Fp, Pr1-5 and NA. This report’s graphical summaries compound selection bias by only focusing on Uppsala and Gotland municipalities. By omitting large quantities of data, the results cannot characterise Viking society broadly as macroscopic trends may be unclear or skewed. Further, by narrowing our range of analysis to two municipalities, we cannot extrapolate trends to other regions. Similar case by case analysis must be conducted to construct plausible predictions for alternative locations. Additionally, runestones with overlapping time periods were only recognised in this report by the earliest of their assigned periods, causing categorical bias. Likewise, runestones which lacked a cross/no cross classification were grouped with those having no cross. 
+
+While it is noted that bias hinders the plausibility of conclusions drawn, this is largely inherent to archaeological studies. 
+
+
+## Research overview
+
+Limited to Svealand, Christian influences from missionaries commenced in 830 AD, catalysing an evolution of the location and design of runestones. Rising political tension with neighbouring Christian areas induced Christianisation, thus, the prospect of superior trade and economic performance propelled conversion rather than the pursuit of holiness. 
+
+Uppsala observes an influx of runestone prevalence during 1060-1100 AD (Pr4), concurrent with the increase of runestone crosses. Its close proximity to the Baltic Sea on the south-east coast of modern day Sweden, facilitated the introduction of foriegn social and religious influences to the Vikings. This supported a transition from polytheistic paganism towards monotheistic Christianity over the short period revealed by the surge in runestone crosses. This period followed the first Christian evangelisation mission in Uppsala, led by Saint Ansgar during the 9th century, providing context to this stage of religious conversion. 
+
+From the classified runestones in Gotland, a significant proportion were erected during the Pr4 period. Unlike Uppsala, no crosses were observed on runestones across all time periods. This not only suggests an uneven spread of Christian beliefs throughout Viking society, but also the need for models alike to identify subtle trends in data. Gotland is isolated from mainland Sweden and therefore bound to undergo religious transformation after other municipalities like Uppsala, which was well-connected with multiple regions and foreign influences via trade interactions. Findings from the maps are supported by churches’ locations in these municipalities. Nonetheless, archaeologists currently lack evidence to determine whether runestones were erected at churches, subsequent church sites, or brought to churches later. 
+
+Grouped bar plots quantified the comparison of runestones with/without crosses. While a larger quantity of runestones is observed in Uppsala, the most notable trend was the complete absence of crosses on runestones in Gotland. This may be attributed to the vast majority of runestones in Gotland lacking cross identification, thus classed in this report as ‘no cross’. This assumption may be misleading.  
+
+Hence, Christianization of the Vikings began in well-connected municipalities, susceptible to foriegn influences. Christianity slowly infiltrated more regional and often isolated municipalities, however, conversion was not observed as heavily in these regions. 
+
+
+*** 
+
+# Mapping the geographical spread across municipalities 
+
+## Loading library packages 
+```{r library}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(maps)
+library(plotly)
+library(ggthemes)
+library(ggmap)
+library(wesanderson)
+library(RColorBrewer)
+```
+
+
+## Preliminary Analysis of runestones in different municipalities
+```{r}
+Arch <- read_xls("Arch_main.xls")
+
+Arch = mutate(Arch,ClassNew = case_when(
+  grepl('RAK',Classification)~'RAK',
+  grepl('Fp',Classification)~'Fp',
+  grepl('Pr1',Classification)~'Pr1',
+  grepl('Pr2',Classification)~'Pr2',
+  grepl('Pr3',Classification)~'Pr3',
+  grepl('Pr4',Classification)~'Pr4',
+  grepl('Pr5',Classification)~'Pr5',
+  TRUE~ 'NA'
+))
+
+table(Arch$ClassNew)
+
+Arch$ClassNew <- factor(Arch$ClassNew,levels=c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered=TRUE)
+
+ggplot(data=Arch,aes(x=ClassNew))+geom_bar(fill="light blue")+
+  ggtitle("Runestone Typology across different Time Periods in Sweden")+
+  labs(x="Time Periods",y="Number of Runestones") + 
+  theme_clean()
+
+```
+
+
+
+## Importing data
+
+```{r data summaries}
+rune_mast <- read_xlsx("Uppsala_trial.xlsx")
+as.data.frame(rune_mast)
+
+runedata <- read_xlsx("1Gotlandclean.xlsx")
+as.data.frame(runedata) 
+```
+
+### Summary of data sets
+
+```{r Data Summary}
+summary(rune_mast)
+
+summary(runedata)
+```
+
+### Data Cleaning
+```{r Data Cleaning}
+rune_mast = mutate(rune_mast,classif = case_when(
+  grepl('RAK',Classification)~'RAK',
+  grepl('Fp',Classification)~'Fp',
+  grepl('Pr1',Classification)~'Pr1',
+  grepl('Pr2',Classification)~'Pr2',
+  grepl('Pr3',Classification)~'Pr3',
+  grepl('Pr4',Classification)~'Pr4',
+  grepl('Pr5',Classification)~'Pr5',
+  TRUE~ 'NA'))
+
+data = mutate(runedata,Classif = case_when(
+  grepl('RAK',Classif)~'RAK',
+  grepl('Fp',Classif)~'Fp',
+  grepl('Pr1',Classif)~'Pr1',
+  grepl('Pr2',Classif)~'Pr2',
+  grepl('Pr3',Classif)~'Pr3',
+  grepl('Pr4',Classif)~'Pr4',
+  grepl('Pr5',Classif)~'Pr5',
+  TRUE~ 'NA'))
+
+runedata$Classif <- factor(runedata$Classif, levels = c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered = TRUE)
+
+rune_mast$classif <- factor(rune_mast$classif, levels = c("RAK","Fp","Pr1","Pr2","Pr3","Pr4","Pr5","NA"), ordered = TRUE)
+```
+
+
+## Uppsala county {.tabset .tabset-fade}
+
+### Maps {-}
+
+```{r Uppsala, warning=FALSE, tidy=TRUE}
+Class <- rune_mast$classif
+Crosses <- factor(rune_mast$Cross, levels = c(0:1))
+uppsala_map <- get_stamenmap(bbox =c(16.9794,59.6788,18.5751,60.1381), maptype="toner-lite",
+  zoom=11)
+
+ggmap(uppsala_map)+
+  geom_point(
+  data = rune_mast, 
+  aes(x=Longitude, y=Latitude, color=Class, shape=Crosses),size=2.5, alpha=0.4)+
+  theme_map()+theme(legend.background = element_blank(), legend.position = "bottom")+
+  guides(fill=guide_legend(title="Classification"))+
+  ggtitle("Geographical distribution of Runestones in the Uppsala County")
+
+ggmap(uppsala_map)+
+  geom_point(
+  data = rune_mast, 
+  aes(x=Longitude, y=Latitude, col=Crosses),size=2, alpha=0.4)+
+  theme_map()+
+  theme(legend.background = element_blank(), legend.position = "bottom")+
+  guides(fill=guide_legend(title="Classification"))+
+  ggtitle("Geographical distribution of Runestones in the Uppsala County")+
+  facet_wrap(vars(classif))+
+  theme(legend.background = element_blank(), legend.position = "right")+
+  scale_color_manual(values=wes_palette(n=3, name="BottleRocket1"))
+
+```
+
+### Number of Crosses over time {-}
+
+```{r Number of crosses Uppsala, error=FALSE}
+uppsala_cross <- ggplot(data = rune_mast, aes(x = Class))+
+  geom_bar(aes(fill=Crosses), position = "dodge")+
+  ggtitle("Proportion of Crosses across Time in Uppsala")+
+  theme(legend.background = element_blank(), legend.position = "bottom")+ 
+  theme_bw()
+  
+ggplotly(uppsala_cross)
+
+```
+
+
+
+## Gotland County {.tabset .tabset-fade}
+
+### Maps {-}
+
+```{r Gotland, warning=FALSE, tidy=TRUE}
+Classes <- runedata$Classif
+gotland_map <- get_stamenmap(
+  bbox = c(left = 17.5, bottom = 57.0, right = 19.8, top = 57.9),
+  maptype = "toner-lite",
+  zoom = 9
+)
+ggmap(gotland_map) +
+  geom_point(data = runedata,
+             aes(x = Long, y = Lat,col = Classif), 
+             size = 2, alpha = 0.7) +
+  labs(title = "Overall Distribution of Runestones in the Gotland County") +
+  theme_map() +
+  theme(legend.background = element_blank(), legend.position = "bottom")
+
+ggmap(gotland_map) +
+  geom_point(data = runedata,
+             aes(x = Long, y = Lat, fill=Crosses),alpha = 0.5,
+             size = 0.9, col = "red") + facet_wrap(vars(Classif))+
+ ggtitle("Geographical Distribution of Runestones in the Gotland County") +
+  theme_map() +
+  theme(legend.background = element_blank(), legend.position = "bottom") 
+
+
+```
+
+
+### Number of crosses over time {-}
+
+```{r Number of crosses Gotland}
+Crosses.Gotland <- runedata$Crosses
+gotland_cross <- ggplot(data = runedata, aes(x = Classes))+geom_bar(aes(fill=Crosses.Gotland))+ 
+  theme(legend.background = element_blank(), legend.position = "bottom")+
+  ggtitle("Proportion of Crosses across Time in Gotland")+ theme_bw()
+
+
+ggplotly(gotland_cross)
+
+
+```
+
+
+
+# Acknowledgements
+
+Role            | Coordinator              | Support
+----------------|--------------------------|----------------------
+Presentation    | Ariel, Jacqui (presenter)| Luana
+Coding          | Shradha                  | Ru
+Scheduling      | Luana                    |
+Research        | Jennifer                 | Ariel, Luana (editors)
+
+
+***
+
+
+*Meetings*
+
+Date, time              | Presentee(s) |  Discussion points             
+------------------------|--------------|------------------------------------------------------------------------------------------------
+8/3 (11am-12pm)         |    All       |Possible research questions; Finalise roles
+15/3 (11am-12pm)        |    All       |Finalise research question
+22/3 (11am-12pm)        |    All       |Conduct domain research and consolidate findings with group members
+29/3 (11am-12pm)        |    All       |Discuss approach of research question; Begin report draft; Begin coding for graphical summaries
+5/4 (11am-12pm)         |    All       |Finalise graphical summaries; Derive trends from graphical summaries
+12/4 (11am-12pm)        |    All       |Film presentation; Finalise report 
+
+ 
+                          
+
+# Articles for further reading
+
+*Knutson, S. A. (2016). Bridges to Eternity: A Re-Examination of the Adoption of Christianity in Viking-Age Sweden. Viking and Medieval Scandinavia, 12, 87–102. https://www.jstor.org/stable/48501798*
+
+Knuston asserts that Christianity was actively uptaken by the Vikings, particularly in well-connected municipalities which benefited from access to foreign influences via trade interactions.
+
+*Thoeming, A. (2016). Dealing with Data: Naïve Bayesian Classification and a Case Study from Viking Age Sweden. International Journal of Student Research in Archaeology, 1(1), 193-204. https://www.academia.edu/21431922/Dealing_with_Data_Na%C3%AFve_Bayesian_Classification_and_a_case_study_from_Viking_Age_Sweden*
+
+Encountering similar limitations in the data to this report, Thoeming determined that the Bayesian classifier was limited, only providing broader categorisations in feature combinations and differences. 
+
+
+
+# References
+
+Tutorial for creating maps: *https://www.youtube.com/watch?v=2k8O-Y_uiRU*
+ 
+Conversion of coordinates: *https://coordinates-converter.com/en/decimal/51.000000,10.000000?karte=OpenStreetMap&zoom=8*
+ 
+Data Cleaning: *Freya and Sean (Tuesday Lab CC)*
